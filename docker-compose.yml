@@ -1,0 +1,73 @@
+services:
+  mongo-1:
+    image: mongo:8.0.9
+    container_name: mongo-1
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-dev-1
+
+  mongo-express-1:
+    image: mongo-express:1.0-18-alpine3.18
+    container_name: mongo-express-1
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo-1
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=root
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH_USERNAME=root
+      - ME_CONFIG_BASICAUTH_PASSWORD=root
+    ports:
+      - 8081:8081
+    depends_on:
+      - mongo-1
+    networks:
+      - app-dev-1
+
+  api-dev-1:
+    container_name: api-dev-1
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: dev
+    working_dir: /app
+    env_file:
+      - path: server/.env
+        required: false
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongo-1
+    networks:
+      - app-dev-1
+    volumes:
+      - ./server:/app
+      # - /app/node_modules
+    command: [ sh, -c, 'npm run dev' ]
+
+  # client:
+  #   container_name: client
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   working_dir: /app
+  #   env_file:
+  #     - path: client/.env.local
+  #       required: false
+  #   ports:
+  #     - 3000:3000
+  #   networks:
+  #     - app-dev
+  #   depends_on:
+  #     - api-dev
+  #   command: [ "npm", "run", "start" ]
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  app-dev-1:

@@ -20,7 +20,6 @@ export class RequestService {
   ): Promise<MedicineRequestDocument | null> {
     try {
       const createdRequest = await this.medicineRequestModel.create({
-        name: 'example', // Placeholder, replace with actual data
         medicineName: createRequestDto.medicineName,
         pharmacy: createRequestDto.pharmacyId,
       });

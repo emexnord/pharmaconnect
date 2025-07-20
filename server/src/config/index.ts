@@ -41,28 +41,6 @@ const configSchema = z.object({
   RESET_PASSWORD_EMAIL_TEMPLATE_ID: z.string().default(''),
   WELCOME_EMAIL_TEMPLATE_ID: z.string().default(''),
   SET_PASSWORD_EMAIL_TEMPLATE_ID: z.string().default(''),
-
-  // OpenAI settings
-  OPENAI_API_KEY: z.string().optional().default(''),
-  OPENAI_MODEL: z.string().optional().default('gpt-4o-mini'),
-
-  // Stripe settings
-  STRIPE_SECRET: z.string().optional().default(''),
-  STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),
-  PLUS_PRODUCT_ID: z.string().optional().default(''),
-  PRO_PRODUCT_ID: z.string().optional().default(''),
-  PLUS_MONTHLY_PRICE_ID: z.string().optional().default(''),
-  PRO_MONTHLY_PRICE_ID: z.string().optional().default(''),
-
-  // DigitalOcean Spaces settings
-  DO_SPACES_ENDPOINT: z
-    .string()
-    .optional()
-    .default('nyc3.digitaloceanspaces.com'),
-  DO_SPACES_REGION: z.string().optional().default('nyc3'),
-  DO_SPACES_BUCKET: z.string().optional(),
-  DO_SPACES_ACCESS_KEY_ID: z.string().optional().default(''),
-  DO_SPACES_SECRET_ACCESS_KEY: z.string().optional().default(''),
 });
 
 // Parse and validate environment variables
@@ -103,25 +81,6 @@ const configuration = () => ({
     resetTemplateId: config.RESET_PASSWORD_EMAIL_TEMPLATE_ID,
     welcomeTemplateId: config.WELCOME_EMAIL_TEMPLATE_ID,
     setPasswordTemplateId: config.SET_PASSWORD_EMAIL_TEMPLATE_ID,
-  },
-  openai: {
-    apiKey: config.OPENAI_API_KEY,
-    model: config.OPENAI_MODEL,
-  },
-  stripe: {
-    secret: config.STRIPE_SECRET,
-    webhookSecret: config.STRIPE_WEBHOOK_SECRET,
-    plusProductId: config.PLUS_PRODUCT_ID,
-    proProductId: config.PRO_PRODUCT_ID,
-    plusMonthlyPriceId: config.PLUS_MONTHLY_PRICE_ID,
-    proMonthlyPriceId: config.PRO_MONTHLY_PRICE_ID,
-  },
-  do: {
-    accessKeyId: config.DO_SPACES_ACCESS_KEY_ID,
-    secretAccessKey: config.DO_SPACES_SECRET_ACCESS_KEY,
-    endpoint: config.DO_SPACES_ENDPOINT,
-    region: config.DO_SPACES_REGION,
-    bucket_name: config.DO_SPACES_BUCKET,
   },
 });
 

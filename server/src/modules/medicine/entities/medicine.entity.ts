@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Medicine extends Document {
-  @Prop({ required: true })
+  @Prop({ required: false })
   name: string;
 
   @Prop()
