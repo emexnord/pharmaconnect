@@ -1,10 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
+export type PharmacyDocument = Pharmacy & Document;
 @Schema({ timestamps: true })
 export class Pharmacy extends Document {
   @Prop({ required: true })
   name: string;
+
+  @Prop({ required: true, unique: true })
+  shortCode: string;
 
   @Prop({
     type: {
@@ -39,9 +43,6 @@ export class Pharmacy extends Document {
 
   @Prop({ required: true })
   password: string;
-
-  @Prop()
-  socketId: string;
 }
 
 export const PharmacySchema = SchemaFactory.createForClass(Pharmacy);

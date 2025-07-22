@@ -7,6 +7,7 @@ import { MedicineModule } from './modules/medicine/medicine.module';
 import { ResponseModule } from './modules/response/response.module';
 import { SocketModule } from './modules/socket/socket.module';
 import { DatabaseModule } from './modules/db/db.module';
+import { JwtModule } from './modules/jwt/jwt.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DatabaseModule } from './modules/db/db.module';
     MedicineModule,
     ResponseModule,
     SocketModule,
+    JwtModule,
   ],
 
   controllers: [AppController],
