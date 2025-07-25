@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { RequestService } from './medicine-request.service';
+import { MedicineRequestService } from './medicine-request.service';
 import { CreateMedicineRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { SocketGateway } from '../socket/socket.gateway';
@@ -15,7 +15,7 @@ import { SocketGateway } from '../socket/socket.gateway';
 @Controller('medicine-request')
 export class RequestController {
   constructor(
-    private readonly requestService: RequestService,
+    private readonly requestService: MedicineRequestService,
     private readonly SocketGateway: SocketGateway,
   ) {}
 

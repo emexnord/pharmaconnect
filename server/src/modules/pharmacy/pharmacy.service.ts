@@ -20,6 +20,9 @@ export class PharmacyService {
     private jwtService: JwtAuthService,
   ) {}
 
+  async findById(id: string): Promise<PharmacyDocument | null> {
+    return this.pharmacyModel.findById(id).exec();
+  }
   async register(
     dto: RegisterPharmacyDto,
   ): Promise<{ pharmacy: PharmacyDocument; token: string }> {
@@ -67,10 +70,10 @@ export class PharmacyService {
     dto: LoginPharmacyDto,
   ): Promise<{ pharmacy: PharmacyDocument; token: string }> {
     const pharmacy = await this.pharmacyModel.findOne({
-      shortCode: dto.shortCode,
+      phone: dto.phone,
     });
     if (!pharmacy) {
-      throw new UnauthorizedException('Invalid short code or password');
+      throw new UnauthorizedException('Invalid phone or password');
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -78,7 +81,7 @@ export class PharmacyService {
       pharmacy.password,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid short code or password');
+      throw new UnauthorizedException('Invalid phone or password');
     }
 
     const token = await this.jwtService.login(pharmacy);

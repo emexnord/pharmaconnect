@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { RequestService } from './medicine-request.service';
 import { RequestController } from './medicine-request.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
@@ -7,6 +6,8 @@ import {
   MedicineRequestSchema,
 } from './entities/medicine-request.entity';
 import { SocketModule } from '../socket/socket.module';
+import { MedicineRequestService } from './medicine-request.service';
+import { PharmacyModule } from '../pharmacy/pharmacy.module';
 
 @Module({
   imports: [
@@ -14,8 +15,9 @@ import { SocketModule } from '../socket/socket.module';
       { name: MedicineRequest.name, schema: MedicineRequestSchema },
     ]),
     SocketModule,
+    PharmacyModule,
   ],
   controllers: [RequestController],
-  providers: [RequestService],
+  providers: [MedicineRequestService],
 })
-export class RequestModule {}
+export class MedicineRequestModule {}

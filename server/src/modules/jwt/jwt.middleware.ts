@@ -16,7 +16,7 @@ export class JwtMiddleware implements NestMiddleware {
           throw new Error('JWT_SECRET is not defined');
         }
         const decoded = jwt.verify(token, config.jwt.accessTokenSecret);
-        req['user'] = decoded;
+        req['pharmacy'] = decoded;
       } catch {
         return res.status(401).json({ message: 'Invalid token' });
       }

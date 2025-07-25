@@ -8,7 +8,13 @@ export class Pharmacy extends Document {
   name: string;
 
   @Prop({ required: true, unique: true })
-  shortCode: string;
+  phone: string;
+
+  @Prop({ required: true, unique: true })
+  email: string;
+
+  @Prop({ required: true })
+  password: string;
 
   @Prop({
     type: {
@@ -26,7 +32,16 @@ export class Pharmacy extends Document {
     coordinates: [number, number];
   };
 
-  @Prop({ required: true })
+  @Prop({
+    type: {
+      street: { type: String, required: true },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true },
+    },
+    required: true,
+  })
   address: {
     street: string;
     city: string;
@@ -34,15 +49,6 @@ export class Pharmacy extends Document {
     postalCode: string;
     country: string;
   };
-
-  @Prop({ required: true, unique: true })
-  phone: string;
-
-  @Prop({ required: true, unique: true })
-  email: string;
-
-  @Prop({ required: true })
-  password: string;
 }
 
 export const PharmacySchema = SchemaFactory.createForClass(Pharmacy);

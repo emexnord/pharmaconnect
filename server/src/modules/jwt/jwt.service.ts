@@ -12,7 +12,7 @@ export class JwtAuthService {
   async login(pharmacy: Pharmacy): Promise<string> {
     const accessTokenPayload = {
       _id: pharmacy._id,
-      shortCode: pharmacy.shortCode,
+      phone: pharmacy.phone,
       name: pharmacy.name,
       email: pharmacy.email,
     };
