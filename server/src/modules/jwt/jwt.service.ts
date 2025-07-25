@@ -15,6 +15,7 @@ export class JwtAuthService {
       phone: pharmacy.phone,
       name: pharmacy.name,
       email: pharmacy.email,
+      accessTokenExpiry: config.jwt.accessTokenExpiry,
     };
     // const refreshTokenPayload = { _id: user._id };
 

@@ -13,6 +13,15 @@ export class MedicineRequest {
 
   @Prop({ default: false })
   fulfilled: boolean;
+
+  @Prop({ default: false })
+  isUrgent: boolean;
+
+  @Prop({ type: Date, default: Date.now })
+  createdAt: Date;
+
+  @Prop({ type: Date, default: Date.now })
+  updatedAt: Date;
 }
 
 export const MedicineRequestSchema =

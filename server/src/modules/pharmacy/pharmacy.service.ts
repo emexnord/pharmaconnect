@@ -6,7 +6,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { nanoid } from 'nanoid';
 import { JwtAuthService } from '../jwt/jwt.service';
 import { Pharmacy, PharmacyDocument } from './entities/pharmacy.entity';
 import { RegisterPharmacyDto } from './dto/register-pharmacy.dto';
@@ -34,15 +33,6 @@ export class PharmacyService {
       throw new BadRequestException('Email or phone already registered');
     }
 
-    // Generate unique short code
-    let shortCode: string;
-    let isUnique = false;
-    do {
-      shortCode = nanoid(6); // 6-character alphanumeric code
-      const existingCode = await this.pharmacyModel.findOne({ shortCode });
-      isUnique = !existingCode;
-    } while (!isUnique);
-
     // Hash password
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
@@ -57,7 +47,6 @@ export class PharmacyService {
       phone: dto.phone,
       email: dto.email,
       password: hashedPassword,
-      shortCode,
     });
 
     // Generate JWT
@@ -69,7 +58,7 @@ export class PharmacyService {
   async login(
     dto: LoginPharmacyDto,
   ): Promise<{ pharmacy: PharmacyDocument; token: string }> {
-    const pharmacy = await this.pharmacyModel.findOne({
+    const pharmacy = await this.findWithSensitiveFields({
       phone: dto.phone,
     });
     if (!pharmacy) {
@@ -86,5 +75,9 @@ export class PharmacyService {
 
     const token = await this.jwtService.login(pharmacy);
     return { pharmacy, token };
+  }
+
+  async findWithSensitiveFields(filter: any): Promise<PharmacyDocument | null> {
+    return this.pharmacyModel.findOne(filter).select('+password').exec();
   }
 }
