@@ -38,6 +38,14 @@
   --color-card-foreground: var(--card-foreground);
   --color-history-item-bg: var(--history-item-bg);
   --color-card: var(--card);
+  /* custom colors */
+  --color-pharma-blue: oklch(0.7006 0.1282 225.88);
+  --color-pharma-lightblue: oklch(0.7628 0.1319 224.33);
+  --color-pharma-darkblue: oklch(0.6847 0.1479 237.32);
+  --color-pharma-green: oklch(0.7006 0.1282 225.88);
+  --color-pharma-text: oklch(0.3211 0 0);
+  --color-pharma-gray: oklch(0.9702 0 0);
+  /*  */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -131,6 +139,52 @@
   --sidebar-ring: 217.2 91.2% 59.8%; */
 }
 
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
 
 @layer base {
   * {
@@ -141,11 +195,19 @@
   }
 
   .pharma-card {
-    @apply rounded-lg bg-white shadow-md p-4 mb-4 border-l-4;
+    @apply rounded-lg bg-white shadow-md p-4 mb-4 border-l-4 border-pharma-blue;
   }
 
   .pharma-button {
     @apply flex items-center justify-center gap-2 py-2 px-4 rounded-md text-white font-medium transition-all duration-200;
+  }
+
+  .pharma-button-green {
+    @apply flex items-center justify-center gap-2 py-2 px-4 rounded-md text-white font-medium transition-all duration-200 bg-pharma-blue hover:bg-pharma-darkblue;
+  }
+
+  .pharma-button-outline {
+    @apply flex items-center justify-center gap-2 py-2 px-4 rounded-md text-white font-medium transition-all duration-200 bg-transparent text-pharma-text border border-gray-300 hover:bg-gray-100;
   }
 
   .pharma-button-red {
@@ -157,7 +219,7 @@
   }
 
   .pharma-tab-active {
-    @apply px-4 py-2 rounded-t-lg font-medium bg-white border-t-2 shadow-sm;
+    @apply px-4 py-2 rounded-t-lg font-medium bg-white border-t-2 border-pharma-blue text-pharma-text shadow-sm;
   }
 
   .pharma-tab-inactive {

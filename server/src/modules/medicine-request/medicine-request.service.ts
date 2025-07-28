@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import {
@@ -8,6 +12,7 @@ import {
 import { Model } from 'mongoose';
 import { CreateMedicineRequestDto } from './dto/create-request.dto';
 import { PharmacyService } from '../pharmacy/pharmacy.service';
+import { SocketGateway } from '../socket/socket.gateway';
 
 @Injectable()
 export class MedicineRequestService {
@@ -15,6 +20,7 @@ export class MedicineRequestService {
     @InjectModel(MedicineRequest.name)
     private readonly medicineRequestModel: Model<MedicineRequestDocument>,
     private readonly pharmacyService: PharmacyService,
+    private readonly socketGateway: SocketGateway,
   ) {}
 
   async createMedicineRequest(
@@ -33,10 +39,19 @@ export class MedicineRequestService {
         medicineName: createRequestDto.medicineName,
         pharmacy: createRequestDto.pharmacyId,
       });
+
+      // After storing, emit to nearby pharmacies
+      this.socketGateway.broadcastRequestToNearby({
+        medicineName: createdRequest.medicineName,
+        longitude: pharmacy.location.coordinates[0],
+        latitude: pharmacy.location.coordinates[1],
+        pharmacyId: createdRequest.pharmacy.toString(),
+      });
       return createdRequest;
     } catch (error) {
-      console.error('Error creating medicine request:', error);
-      return null;
+      throw new InternalServerErrorException(
+        `Error creating medicine request: ${error.message}`,
+      );
     }
   }
 

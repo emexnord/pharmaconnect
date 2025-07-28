@@ -9,4 +9,7 @@ export class CreateMedicineRequestDto {
   @ApiProperty()
   @IsNotEmpty()
   pharmacyId: string;
+
+  @ApiProperty()
+  isUrgent?: boolean;
 }

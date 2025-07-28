@@ -10,9 +10,6 @@ const RegistrationForm = ({ onComplete }: RegistrationFormProps) => {
   const [registrationKey, setRegistrationKey] = useState("");
   const [formData, setFormData] = useState({
     pharmacyName: "",
-    mainOwner: "",
-    owner2: "",
-    owner3: "",
     soeCode: "",
     address: "",
     city: "",
@@ -37,9 +34,6 @@ const RegistrationForm = ({ onComplete }: RegistrationFormProps) => {
       // Auto-fill form for demo purposes
       setFormData({
         pharmacyName: "Farmacia Central",
-        mainOwner: "Juan García",
-        owner2: "María López",
-        owner3: "",
         soeCode: "SOE-28001",
         address: "Calle Mayor 25",
         city: "Madrid",
@@ -66,7 +60,6 @@ const RegistrationForm = ({ onComplete }: RegistrationFormProps) => {
     // Check required fields
     const requiredFields = [
       "pharmacyName",
-      "mainOwner",
       "soeCode",
       "address",
       "city",
@@ -170,46 +163,6 @@ const RegistrationForm = ({ onComplete }: RegistrationFormProps) => {
                   onChange={handleInputChange}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Main Owner *
-                </label>
-                <input
-                  type="text"
-                  name="mainOwner"
-                  value={formData.mainOwner}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Owner 2
-                </label>
-                <input
-                  type="text"
-                  name="owner2"
-                  value={formData.owner2}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Owner 3
-                </label>
-                <input
-                  type="text"
-                  name="owner3"
-                  value={formData.owner3}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
 
