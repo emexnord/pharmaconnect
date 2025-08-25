@@ -14,7 +14,7 @@ async function bootstrap() {
     // Configure Swagger (OpenAPI) documentation for the API
     const swagger_config = new DocumentBuilder()
       .setTitle('Pharmaconnect API')
-      .setDescription('API documentation for the Pharmaconnect application')
+      .setDescription('API documentation for the PharmaConnect application')
       .setVersion(config.app.version ?? '1.0')
       .addBearerAuth(
         {

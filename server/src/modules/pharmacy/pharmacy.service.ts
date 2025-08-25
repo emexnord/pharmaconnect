@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtAuthService } from '../jwt/jwt.service';
 import { Pharmacy, PharmacyDocument } from './entities/pharmacy.entity';
@@ -19,9 +19,13 @@ export class PharmacyService {
     private jwtService: JwtAuthService,
   ) {}
 
-  async findById(id: string): Promise<PharmacyDocument | null> {
-    return this.pharmacyModel.findById(id).exec();
+  async findById(
+    id: string | Types.ObjectId,
+  ): Promise<PharmacyDocument | null> {
+    const objectId = new Types.ObjectId(id);
+    return this.pharmacyModel.findById(objectId).exec();
   }
+
   async register(
     dto: RegisterPharmacyDto,
   ): Promise<{ pharmacy: PharmacyDocument; token: string }> {

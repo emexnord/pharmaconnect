@@ -1,9 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type PharmacyDocument = Pharmacy & Document;
 @Schema({ timestamps: true })
-export class Pharmacy extends Document {
+export class Pharmacy {
+  @Prop({ type: Types.ObjectId })
+  _id: string;
+
   @Prop({ required: true })
   name: string;
 
@@ -15,6 +18,9 @@ export class Pharmacy extends Document {
 
   @Prop({ required: true, select: false })
   password: string;
+
+  @Prop({ default: 5 })
+  notificationRadiusKm: number;
 
   @Prop({
     type: {

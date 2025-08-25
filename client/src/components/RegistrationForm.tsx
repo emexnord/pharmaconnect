@@ -33,13 +33,13 @@ const RegistrationForm = ({ onComplete }: RegistrationFormProps) => {
     ) {
       // Auto-fill form for demo purposes
       setFormData({
-        pharmacyName: "Farmacia Central",
+        pharmacyName: "Central Pharmacy",
         soeCode: "SOE-28001",
-        address: "Calle Mayor 25",
-        city: "Madrid",
-        postalCode: "28001",
-        phone1: "914567890",
-        phone2: "654321098",
+        address: "Address 1",
+        city: "Addis Ababa",
+        postalCode: "1000",
+        phone1: "0914567890",
+        phone2: "0754321098",
       });
       setStep("details");
 

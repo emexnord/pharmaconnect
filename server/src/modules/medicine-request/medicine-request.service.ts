@@ -3,13 +3,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateRequestDto } from './dto/update-request.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   MedicineRequest,
   MedicineRequestDocument,
 } from './entities/medicine-request.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateMedicineRequestDto } from './dto/create-request.dto';
 import { PharmacyService } from '../pharmacy/pharmacy.service';
 import { SocketGateway } from '../socket/socket.gateway';
@@ -25,19 +24,17 @@ export class MedicineRequestService {
 
   async createMedicineRequest(
     createRequestDto: CreateMedicineRequestDto,
+    pharmacyId: string,
   ): Promise<MedicineRequestDocument | null> {
-    const pharmacy = await this.pharmacyService.findById(
-      createRequestDto.pharmacyId,
-    );
+    const pharmacy = await this.pharmacyService.findById(pharmacyId);
     if (!pharmacy) {
-      throw new NotFoundException(
-        `Pharmacy with ID ${createRequestDto.pharmacyId} not found`,
-      );
+      throw new NotFoundException(`Pharmacy with ID ${pharmacyId} not found`);
     }
     try {
       const createdRequest = await this.medicineRequestModel.create({
         medicineName: createRequestDto.medicineName,
-        pharmacy: createRequestDto.pharmacyId,
+        pharmacy: pharmacyId,
+        isUrgent: createRequestDto.isUrgent,
       });
 
       // After storing, emit to nearby pharmacies
@@ -55,19 +52,28 @@ export class MedicineRequestService {
     }
   }
 
-  findAll() {
-    return `This action returns all request`;
+  async getActiveRequestsByPharmacy(
+    pharmacyId: string,
+  ): Promise<MedicineRequest[]> {
+    return this.medicineRequestModel
+      .find({
+        pharmacy: new Types.ObjectId(pharmacyId),
+        fulfilled: false,
+      })
+      .exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} request`;
+  async markAsResolved(requestId: string): Promise<MedicineRequest> {
+    const request = await this.medicineRequestModel.findById(requestId);
+    if (!request) throw new NotFoundException('Request not found');
+    request.fulfilled = true;
+    return request.save();
   }
 
-  update(id: number, updateRequestDto: UpdateRequestDto) {
-    return `This action updates a #${JSON.stringify(updateRequestDto)} request`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} request`;
+  async cancelRequest(requestId: string): Promise<MedicineRequest> {
+    const request = await this.medicineRequestModel.findById(requestId);
+    if (!request) throw new NotFoundException('Request not found');
+    await request.deleteOne(); // or `request.cancelled = true` if you want soft delete
+    return request;
   }
 }

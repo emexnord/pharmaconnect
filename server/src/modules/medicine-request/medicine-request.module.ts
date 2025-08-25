@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { RequestController } from './medicine-request.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
@@ -8,6 +8,7 @@ import {
 import { SocketModule } from '../socket/socket.module';
 import { MedicineRequestService } from './medicine-request.service';
 import { PharmacyModule } from '../pharmacy/pharmacy.module';
+import { JwtMiddleware } from '../jwt/jwt.middleware';
 
 @Module({
   imports: [
@@ -20,4 +21,8 @@ import { PharmacyModule } from '../pharmacy/pharmacy.module';
   controllers: [RequestController],
   providers: [MedicineRequestService],
 })
-export class MedicineRequestModule {}
+export class MedicineRequestModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(JwtMiddleware).forRoutes('/medicine-request');
+  }
+}
