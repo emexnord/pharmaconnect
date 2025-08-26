@@ -6,22 +6,37 @@ import {
   Param,
   Delete,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { MedicineRequestService } from './medicine-request.service';
-import { CreateMedicineRequestDto } from './dto/create-request.dto';
+import {
+  CreateMedicineRequestDto,
+  GetRequestsQueryDto,
+} from './dto/create-request.dto';
 import { GetPharmacy } from '../pharmacy/decorators/pharmacy.decorator';
 import { Pharmacy } from '../pharmacy/entities/pharmacy.entity';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 @Controller('medicine-request')
 export class RequestController {
   constructor(private readonly requestService: MedicineRequestService) {}
 
-  @Get('pharmacy/:pharmacyId')
+  @Get()
+  @ApiQuery({ name: 'page', required: true, type: Number })
+  @ApiQuery({ name: 'limit', required: true, type: Number })
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Get all active requests for a pharmacy' })
-  async getActiveRequests(@Param('pharmacyId') pharmacyId: string) {
-    return this.requestService.getActiveRequestsByPharmacy(pharmacyId);
+  async getRequests(
+    @GetPharmacy() pharmacy: Pharmacy,
+    @Query() query: GetRequestsQueryDto,
+  ) {
+    return this.requestService.getRequests(pharmacy._id, query);
+  }
+
+  @Get('my')
+  @ApiBearerAuth('access-token')
+  async getMyRequests(@GetPharmacy() pharmacy: Pharmacy) {
+    console.log('id', pharmacy._id);
+    return this.requestService.getMyRequests(pharmacy._id);
   }
 
   @Post()

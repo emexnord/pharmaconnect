@@ -8,10 +8,14 @@ import {
   MedicineRequest,
   MedicineRequestDocument,
 } from './entities/medicine-request.entity';
-import { Model, Types } from 'mongoose';
-import { CreateMedicineRequestDto } from './dto/create-request.dto';
+import { Model, Types, PipelineStage } from 'mongoose';
+import {
+  CreateMedicineRequestDto,
+  GetRequestsQueryDto,
+} from './dto/create-request.dto';
 import { PharmacyService } from '../pharmacy/pharmacy.service';
 import { SocketGateway } from '../socket/socket.gateway';
+import { ResponseType } from '../medicine-response/entities/medicine-response.type';
 
 @Injectable()
 export class MedicineRequestService {
@@ -33,7 +37,7 @@ export class MedicineRequestService {
     try {
       const createdRequest = await this.medicineRequestModel.create({
         medicineName: createRequestDto.medicineName,
-        pharmacy: pharmacyId,
+        pharmacy: pharmacy._id,
         isUrgent: createRequestDto.isUrgent,
       });
 
@@ -61,6 +65,114 @@ export class MedicineRequestService {
         fulfilled: false,
       })
       .exec();
+  }
+
+  // Get my requests with responses
+  async getMyRequests(pharmacyId: string) {
+    return this.medicineRequestModel.aggregate([
+      { $match: { pharmacy: pharmacyId } },
+      {
+        $lookup: {
+          from: 'medicineresponses',
+          localField: '_id',
+          foreignField: 'request',
+          as: 'responses',
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+  }
+
+  // 2. Get requests by others within my listening radius
+  async getRequests(pharmacyId: string, query: GetRequestsQueryDto) {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+
+    const myPharmacy = await this.pharmacyService.findById(pharmacyId);
+    if (!myPharmacy) throw new NotFoundException('Pharmacy not found');
+
+    const nearbyIds =
+      await this.pharmacyService.getNearbyPharmaciesToListen(pharmacyId);
+    if (!nearbyIds.length) return [];
+
+    const pipeline: PipelineStage[] = [
+      // find active requests which are within my listening radius
+      {
+        $match: {
+          pharmacy: { $in: nearbyIds },
+          fulfilled: false,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+      // Lookup pharmacy details
+      {
+        $lookup: {
+          from: 'pharmacies',
+          localField: 'pharmacy',
+          foreignField: '_id',
+          as: 'pharmacy',
+        },
+      },
+      // Unwind pharmacy details
+      { $unwind: '$pharmacy' },
+      // Lookup medicine response details
+      {
+        $lookup: {
+          from: 'medicineresponses',
+          localField: '_id',
+          foreignField: 'request',
+          as: 'responses',
+        },
+      },
+      // add response counts for each response type
+      {
+        $addFields: {
+          responseCounts: {
+            have: {
+              $size: {
+                $filter: {
+                  input: '$responses',
+                  as: 'resp',
+                  cond: { $eq: ['$$resp.response', ResponseType.HAVE] },
+                },
+              },
+            },
+            substitute: {
+              $size: {
+                $filter: {
+                  input: '$responses',
+                  as: 'resp',
+                  cond: { $eq: ['$$resp.response', ResponseType.SUBSTITUTE] },
+                },
+              },
+            },
+            notSure: {
+              $size: {
+                $filter: {
+                  input: '$responses',
+                  as: 'resp',
+                  cond: { $eq: ['$$resp.response', ResponseType.NOT_SURE] },
+                },
+              },
+            },
+            notHave: {
+              $size: {
+                $filter: {
+                  input: '$responses',
+                  as: 'resp',
+                  cond: { $eq: ['$$resp.response', ResponseType.NOT_HAVE] },
+                },
+              },
+            },
+          },
+        },
+      },
+      { $project: { responses: 0 } }, // don’t return raw responses
+    ];
+
+    return this.medicineRequestModel.aggregate(pipeline);
   }
 
   async markAsResolved(requestId: string): Promise<MedicineRequest> {

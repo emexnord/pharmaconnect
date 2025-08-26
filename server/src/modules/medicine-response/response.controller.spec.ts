@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ResponseController } from './response.controller';
-import { ResponseService } from './response.service';
+import { ResponseController } from './medicine-response.controller';
+import { ResponseService } from './medicine-response.service';
 
 describe('ResponseController', () => {
   let controller: ResponseController;

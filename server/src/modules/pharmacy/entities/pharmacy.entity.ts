@@ -19,8 +19,8 @@ export class Pharmacy {
   @Prop({ required: true, select: false })
   password: string;
 
-  @Prop({ default: 5 })
-  notificationRadiusKm: number;
+  @Prop({ default: 5000 })
+  notificationRadiusMeter: number;
 
   @Prop({
     type: {
@@ -29,7 +29,7 @@ export class Pharmacy {
       required: true,
     },
     coordinates: {
-      type: [Number], // [longitude, latitude]
+      type: [Number], // [longitude, latitude] - longitude: -180 - 180, latitude: -90 - 90
       required: true,
     },
   })
