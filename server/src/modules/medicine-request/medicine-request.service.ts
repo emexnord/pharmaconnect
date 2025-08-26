@@ -26,6 +26,38 @@ export class MedicineRequestService {
     private readonly socketGateway: SocketGateway,
   ) {}
 
+  async getMedicineRequestById(
+    id: string,
+  ): Promise<MedicineRequestDocument | null> {
+    const result = await this.medicineRequestModel.aggregate([
+      { $match: { _id: new Types.ObjectId(id) } },
+      {
+        $lookup: {
+          from: 'pharmacies',
+          localField: 'pharmacy',
+          foreignField: '_id',
+          as: 'pharmacy',
+        },
+      },
+      {
+        $unwind: {
+          path: '$pharmacy',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'medicineresponses',
+          localField: '_id',
+          foreignField: 'request',
+          as: 'responses',
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+    return result[0] ?? null;
+  }
+
   async createMedicineRequest(
     createRequestDto: CreateMedicineRequestDto,
     pharmacyId: string,
@@ -34,20 +66,16 @@ export class MedicineRequestService {
     if (!pharmacy) {
       throw new NotFoundException(`Pharmacy with ID ${pharmacyId} not found`);
     }
-    try {
-      const createdRequest = await this.medicineRequestModel.create({
-        medicineName: createRequestDto.medicineName,
-        pharmacy: pharmacy._id,
-        isUrgent: createRequestDto.isUrgent,
-      });
 
+    const createdRequest = await this.medicineRequestModel.create({
+      medicineName: createRequestDto.medicineName,
+      pharmacy: pharmacy._id,
+      isUrgent: createRequestDto.isUrgent,
+    });
+
+    try {
       // After storing, emit to nearby pharmacies
-      this.socketGateway.broadcastRequestToNearby({
-        medicineName: createdRequest.medicineName,
-        longitude: pharmacy.location.coordinates[0],
-        latitude: pharmacy.location.coordinates[1],
-        pharmacyId: createdRequest.pharmacy.toString(),
-      });
+      await this.socketGateway.broadcastRequestToNearby(createdRequest);
       return createdRequest;
     } catch (error) {
       throw new InternalServerErrorException(

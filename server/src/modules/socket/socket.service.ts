@@ -1,66 +1,42 @@
 import { Injectable } from '@nestjs/common';
-
-interface PharmacySocket {
-  socketId: string;
-  pharmacyId: string;
-  latitude: number;
-  longitude: number;
-}
+import { PharmacyService } from '../pharmacy/pharmacy.service';
 
 @Injectable()
 export class SocketService {
-  private connections: PharmacySocket[] = [];
+  private connections: Map<string, string> = new Map();
+  // pharmacyId -> socketId
 
-  registerSocket(
-    pharmacyId: string,
-    socketId: string,
-    lat: number,
-    lng: number,
-  ) {
-    // Replace if exists
-    this.connections = this.connections.filter(
-      (conn) => conn.pharmacyId !== pharmacyId,
-    );
-    this.connections.push({
-      pharmacyId,
-      socketId,
-      latitude: lat,
-      longitude: lng,
-    });
+  constructor(private readonly pharmacyService: PharmacyService) {}
+
+  registerSocket(pharmacyId: string, socketId: string) {
+    this.connections.set(pharmacyId, socketId);
   }
 
   removeSocket(socketId: string) {
-    this.connections = this.connections.filter(
-      (conn) => conn.socketId !== socketId,
-    );
+    for (const [pharmacyId, id] of this.connections.entries()) {
+      if (id === socketId) {
+        this.connections.delete(pharmacyId);
+        break;
+      }
+    }
   }
 
-  findNearbySockets(lat: number, lng: number, radiusKm: number): string[] {
-    console.log('connections:', this.connections);
-    return this.connections
-      .filter(
-        (conn) =>
-          this.getDistanceInKm(lat, lng, conn.latitude, conn.longitude) <=
-          radiusKm,
-      )
-      .map((conn) => conn.socketId);
+  getSocketId(pharmacyId: string): string | undefined {
+    return this.connections.get(pharmacyId);
   }
 
-  private getDistanceInKm(
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number,
-  ): number {
-    const toRad = (x: number) => (x * Math.PI) / 180;
-    const R = 6371; // Earth radius in km
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lng2 - lng1);
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  async getNearbySocketIds(pharmacyId: string): Promise<string[]> {
+    const nearbyPharmacyIds =
+      await this.pharmacyService.getNearbyPharmaciesToNotify(pharmacyId);
 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    return nearbyPharmacyIds
+      .map((id) => this.getSocketId(id))
+      .filter((socketId): socketId is string => !!socketId);
+  }
+
+  getSocketIds(pharmacyIds: string[]): string[] {
+    return pharmacyIds
+      .map((id) => this.connections.get(id))
+      .filter((socketId): socketId is string => !!socketId);
   }
 }

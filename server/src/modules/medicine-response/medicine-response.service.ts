@@ -6,15 +6,16 @@ import {
   MedicineResponseDocument,
 } from './entities/medicine-response.entity';
 import { ResponseType } from './entities/medicine-response.type';
+import { SocketGateway } from '../socket/socket.gateway';
 
 @Injectable()
 export class MedicineResponseService {
   constructor(
     @InjectModel(MedicineResponse.name)
     private readonly medicineResponseModel: Model<MedicineResponseDocument>,
+    private readonly socketGateway: SocketGateway,
   ) {}
 
-  // 1. Create a response
   async createResponse(
     requestId: string,
     responderId: string,
@@ -28,7 +29,35 @@ export class MedicineResponseService {
       note,
     });
 
-    return newResponse.save();
+    const savedResponse = await newResponse.save();
+
+    const [responseWithRequest] = await this.medicineResponseModel.aggregate([
+      {
+        $match: { _id: savedResponse._id },
+      },
+      {
+        $lookup: {
+          from: 'medicinerequests',
+          localField: 'request',
+          foreignField: '_id',
+          as: 'request',
+        },
+      },
+      { $unwind: '$request' },
+    ]);
+
+    if (!responseWithRequest || !responseWithRequest.request.pharmacy._id) {
+      throw new NotFoundException('Owner pharmacy not found for this response');
+    }
+
+    const ownerPharmacyId = String(responseWithRequest.request.pharmacy._id);
+
+    await this.socketGateway.notifyPharmacyAboutNewResponse(
+      savedResponse,
+      ownerPharmacyId,
+    );
+
+    return savedResponse;
   }
 
   // 2. Get responses by requestId and optionally filter by response type

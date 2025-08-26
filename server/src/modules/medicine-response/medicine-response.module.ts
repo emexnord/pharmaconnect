@@ -7,12 +7,14 @@ import {
   MedicineResponseSchema,
 } from './entities/medicine-response.entity';
 import { MedicineResponseService } from './medicine-response.service';
+import { SocketModule } from '../socket/socket.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: MedicineResponse.name, schema: MedicineResponseSchema },
     ]),
+    SocketModule,
     PharmacyModule,
   ],
   controllers: [MedicineResponseController],
