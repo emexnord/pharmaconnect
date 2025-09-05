@@ -13,6 +13,8 @@ import { JwtAuthService } from '../jwt/jwt.service';
 import { Pharmacy, PharmacyDocument } from './entities/pharmacy.entity';
 import { RegisterPharmacyDto } from './dto/register-pharmacy.dto';
 import { LoginPharmacyDto } from './dto/login-pharmacy.dto';
+import { TokenService } from '../shared/token.service';
+import { TokenType } from '../shared/enums/token-type.enum';
 
 @Injectable()
 export class PharmacyService {
@@ -20,6 +22,7 @@ export class PharmacyService {
     @InjectModel(Pharmacy.name)
     private pharmacyModel: Model<PharmacyDocument>,
     private jwtService: JwtAuthService,
+    private tokenService: TokenService,
   ) {}
 
   async findById(
@@ -31,7 +34,7 @@ export class PharmacyService {
 
   async register(
     dto: RegisterPharmacyDto,
-  ): Promise<{ pharmacy: PharmacyDocument; token: string }> {
+  ): Promise<{ pharmacy: PharmacyDocument; registrationKey: string }> {
     // Check for duplicates
     const existing = await this.pharmacyModel.findOne({
       $or: [{ email: dto.email }, { phone: dto.phone }],
@@ -56,12 +59,65 @@ export class PharmacyService {
       email: dto.email,
       password: hashedPassword,
       notificationRadiusMeter: dto.notificationRadiusMeter || 5000,
+      isVerified: true,
     });
 
     // Generate JWT
-    const token = await this.jwtService.login(pharmacy);
+    // const token = await this.jwtService.login(pharmacy);
+    const registrationKey = await this.tokenService.createRegistrationKey(
+      pharmacy._id,
+    );
 
-    return { pharmacy, token };
+    return { pharmacy, registrationKey: registrationKey.token };
+  }
+
+  async completeRegistration(registrationKey: string): Promise<{
+    pharmacy: PharmacyDocument;
+  }> {
+    // Validate registration key
+    const tokenDoc = await this.tokenService.findTokenByPharmacyId(
+      registrationKey,
+      TokenType.REGISTRATION_KEY,
+    );
+    if (!tokenDoc) {
+      throw new BadRequestException('Invalid registration key');
+    }
+    if (tokenDoc.expiresAt < new Date()) {
+      throw new BadRequestException('Registration key has expired');
+    }
+
+    const pharmacy = await this.findById(tokenDoc.pharmacyId);
+    if (!pharmacy) {
+      throw new NotFoundException('Pharmacy not found');
+    }
+    if (pharmacy.isActive) {
+      throw new BadRequestException('Pharmacy is already active');
+    }
+
+    pharmacy.isActive = true;
+    await pharmacy.save();
+    // const jwtToken = await this.jwtService.login(pharmacy);
+    // await this.tokenService.deleteTokenById(tokenDoc.id);
+
+    return { pharmacy };
+  }
+
+  async setPasswordForNewPharmacy(
+    pharmacyId: string,
+    newPassword: string,
+  ): Promise<void> {
+    const pharmacy = await this.findById(pharmacyId);
+    if (!pharmacy) {
+      throw new NotFoundException('Pharmacy not found');
+    }
+    if (pharmacy.isActive) {
+      throw new BadRequestException('Pharmacy is already active');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    pharmacy.password = hashedPassword;
+    await pharmacy.save();
   }
 
   async login(

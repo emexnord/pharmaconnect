@@ -22,6 +22,12 @@ export class Pharmacy {
   @Prop({ default: 5000 })
   notificationRadiusMeter: number;
 
+  @Prop({ default: false })
+  isActive: boolean;
+
+  @Prop({ default: false })
+  isVerified: boolean;
+
   @Prop({
     type: {
       type: String,
